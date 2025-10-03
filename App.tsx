@@ -3,7 +3,9 @@ import React, { useState, useCallback, useMemo } from 'react';
 import SearchPanel from './components/SearchPanel';
 import StepOption from './components/StepOption';
 import AppraisalButton from './components/AppraisalButton';
+import LoteoCard from './components/LoteoCard';
 import { PROPERTY_TYPES, LOCATIONS, BEDROOMS } from './constants';
+import { LOTEOS_DATA } from './loteosData';
 import { getSearchUrl } from './searchLinks';
 import type { Operation, SearchCriteria, StepOptionData } from './types';
 
@@ -24,59 +26,81 @@ const keyTranslations: { [key in keyof SearchCriteria]?: string } = {
     propertyType: 'Tipo de Propiedad',
     location: 'Localidad',
     bedrooms: 'Dormitorios',
+    isMortgageCredit: 'Apta para Crédito',
 };
 
 
 const App: React.FC = () => {
     const [activeOperation, setActiveOperation] = useState<Operation | null>(null);
     const [currentStep, setCurrentStep] = useState(0);
+    const [buyFlow, setBuyFlow] = useState<'inmuebles' | 'loteos' | null>(null);
     const [searchCriteria, setSearchCriteria] = useState<SearchCriteria>({
         operation: null,
         propertyType: null,
         location: null,
         bedrooms: null,
+        isMortgageCredit: null,
     });
 
     const resetSearch = useCallback(() => {
         setActiveOperation(null);
         setCurrentStep(0);
+        setBuyFlow(null);
         setSearchCriteria({
             operation: null,
             propertyType: null,
             location: null,
             bedrooms: null,
+            isMortgageCredit: null,
         });
     }, []);
 
     const handleOperationSelect = useCallback((operation: Operation) => {
         setActiveOperation(operation);
-        setSearchCriteria(prev => ({ ...prev, operation }));
-        setCurrentStep(1);
+        setSearchCriteria(prev => ({ ...prev, operation, isMortgageCredit: null })); 
+        if (operation === 'compra') {
+            setCurrentStep(1); 
+        } else {
+            setCurrentStep(2); 
+        }
+    }, []);
+
+    const handleBuyFlowSelect = useCallback((flow: 'inmuebles' | 'loteos') => {
+        setBuyFlow(flow);
+        if (flow === 'inmuebles') {
+            setCurrentStep(1.5); // Go to mortgage question
+        } else {
+            setCurrentStep(100); // Go to loteos grid
+        }
+    }, []);
+    
+    const handleMortgageSelect = useCallback((isCredit: boolean) => {
+        setSearchCriteria(prev => ({ ...prev, isMortgageCredit: isCredit }));
+        setCurrentStep(2); // Go to property type step
     }, []);
 
     const handleOptionSelect = useCallback((step: number, value: string) => {
         switch (step) {
-            case 1: // Property Type
+            case 2: // Property Type
                 const newCriteria = { ...searchCriteria, propertyType: value };
                 setSearchCriteria(newCriteria);
-                // Si el tipo de propiedad es casa o depto, vamos al paso de dormitorios. Si no, al resumen.
                 if (value === 'casa' || value === 'departamento') {
-                    setCurrentStep(2);
+                    setCurrentStep(3);
                 } else {
-                    setCurrentStep(3); // Saltar a localidad y luego a resumen
+                    setCurrentStep(4);
                 }
                 break;
-            case 2: // Location for casa/depto
+            case 3: // Location for casa/depto
                 setSearchCriteria(prev => ({ ...prev, location: value }));
-                setCurrentStep(3);
+                setCurrentStep(4);
                 break;
-            case 3: // Bedrooms OR Location for others
+            case 4: // Bedrooms OR Location for others
                 if (searchCriteria.propertyType === 'casa' || searchCriteria.propertyType === 'departamento') {
                      setSearchCriteria(prev => ({ ...prev, bedrooms: value }));
                 } else {
                      setSearchCriteria(prev => ({ ...prev, location: value }));
                 }
-                setCurrentStep(4);
+                setCurrentStep(5);
                 break;
         }
     }, [searchCriteria]);
@@ -84,20 +108,42 @@ const App: React.FC = () => {
     const renderStepContent = () => {
         let title = '';
         let options: StepOptionData[] = [];
-        let onSelect = (value: string) => {};
+        let onSelect: (value: string) => void;
 
         switch (currentStep) {
             case 1:
-                title = '¿Qué tipo de propiedad buscás?';
-                options = PROPERTY_TYPES;
-                onSelect = (value) => handleOptionSelect(1, value);
-                break;
+                return (
+                    <div key="buy-flow-step" className="w-full flex flex-col items-center animate-fade-in">
+                        <h3 className="text-2xl md:text-3xl font-semibold mb-8 text-center">¿Qué estás buscando?</h3>
+                        <div className="flex flex-col md:flex-row justify-center gap-4 w-full max-w-2xl px-2">
+                            <StepOption label="Loteos" onClick={() => handleBuyFlowSelect('loteos')} />
+                            <StepOption label="Inmuebles" onClick={() => handleBuyFlowSelect('inmuebles')} />
+                        </div>
+                    </div>
+                )
+            case 1.5:
+                 return (
+                     <div key="mortgage-step" className="w-full flex flex-col items-center animate-fade-in">
+                        <h3 className="text-2xl md:text-3xl font-semibold mb-8 text-center">¿Buscás que la propiedad sea apta para crédito hipotecario?</h3>
+                        <div className="flex flex-wrap justify-center gap-2 md:gap-3 w-full max-w-lg px-2">
+                           <StepOption label="Sí" onClick={() => handleMortgageSelect(true)} />
+                           <StepOption label="No" onClick={() => handleMortgageSelect(false)} />
+                        </div>
+                    </div>
+                )
             case 2:
-                title = '¿En qué localidad?';
-                options = LOCATIONS;
+                title = '¿Qué tipo de propiedad buscás?';
+                options = searchCriteria.isMortgageCredit === true 
+                    ? PROPERTY_TYPES.filter(p => p.id === 'casa' || p.id === 'departamento')
+                    : PROPERTY_TYPES;
                 onSelect = (value) => handleOptionSelect(2, value);
                 break;
             case 3:
+                title = '¿En qué localidad?';
+                options = LOCATIONS;
+                onSelect = (value) => handleOptionSelect(3, value);
+                break;
+            case 4:
                  if (searchCriteria.propertyType === 'casa' || searchCriteria.propertyType === 'departamento') {
                     title = '¿Cuántos dormitorios?';
                     options = BEDROOMS;
@@ -105,23 +151,33 @@ const App: React.FC = () => {
                     title = '¿En qué localidad?';
                     options = LOCATIONS;
                 }
-                onSelect = (value) => handleOptionSelect(3, value);
+                onSelect = (value) => handleOptionSelect(4, value);
                 break;
-            case 4:
+            case 5:
                 const searchUrl = getSearchUrl(searchCriteria);
                 return (
                     <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">¡Todo listo!</h2>
                         <p className="text-lg md:text-xl mb-6 text-gray-300">¡Vamos a buscar la propiedad ideal para vos!</p>
                         <div className="text-left bg-white/5 rounded-lg p-6 mb-8 text-base md:text-lg">
-                            {Object.entries(searchCriteria).map(([key, value]) => {
-                                if (!value) return null;
-                                const typedKey = key as keyof SearchCriteria;
-                                return (
-                                     <p key={key} className="capitalize">
-                                        <strong className="font-semibold">{keyTranslations[typedKey] || key}:</strong> {value}
-                                    </p>
-                                )
+                            {Object.entries(searchCriteria)
+                                .filter(([, value]) => value !== null)
+                                .map(([key, value]) => {
+                                    const typedKey = key as keyof SearchCriteria;
+                                    let displayValue: string;
+
+                                    if (key === 'isMortgageCredit') {
+                                        if (searchCriteria.operation !== 'compra') return null;
+                                        displayValue = value ? 'Sí' : 'No';
+                                    } else {
+                                        displayValue = String(value);
+                                    }
+                                    
+                                    return (
+                                        <p key={key} className="capitalize">
+                                            <strong className="font-semibold">{keyTranslations[typedKey] || key}:</strong> {displayValue}
+                                        </p>
+                                    );
                             })}
                         </div>
                         <a 
@@ -134,9 +190,20 @@ const App: React.FC = () => {
                         </a>
                     </div>
                 );
+             case 100:
+                return (
+                    <div key="loteos-step" className="w-full flex flex-col items-center animate-fade-in overflow-y-auto">
+                        <h3 className="text-2xl md:text-3xl font-semibold mb-8 text-center">Conocé nuestros Loteos</h3>
+                        <div className="grid grid-cols-2 gap-4 md:gap-6 w-full max-w-4xl px-2 pb-4">
+                            {LOTEOS_DATA.map(loteo => (
+                                <LoteoCard key={loteo.id} name={loteo.name} imageUrl={loteo.imageUrl} url={loteo.url} />
+                            ))}
+                        </div>
+                    </div>
+                );
         }
 
-        if (currentStep > 0 && currentStep < 4) {
+        if (currentStep > 1 && currentStep < 5) {
              return (
                 <div key={currentStep} className="w-full flex flex-col items-center animate-fade-in">
                     <h3 className="text-2xl md:text-3xl font-semibold mb-8 text-center">{title}</h3>
@@ -151,17 +218,12 @@ const App: React.FC = () => {
         return null;
     };
     
-    const stepContent = useMemo(() => renderStepContent(), [currentStep, searchCriteria, handleOptionSelect]);
+    const stepContent = useMemo(() => renderStepContent(), [currentStep, searchCriteria, handleOptionSelect, handleMortgageSelect, handleBuyFlowSelect]);
 
     return (
         <main className="w-screen h-screen bg-[rgb(13,30,40)] text-white overflow-hidden flex flex-col">
             <header className="p-4 flex justify-between items-center w-full shrink-0">
                 <h1 className="text-2xl font-bold tracking-wider">ALMIRON PROPIEDADES</h1>
-                 {activeOperation && (
-                    <button onClick={resetSearch} className="bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-colors">
-                        Empezar de nuevo
-                    </button>
-                 )}
             </header>
             <div className="w-full flex-grow flex flex-col overflow-hidden">
                 <div className="flex-grow flex flex-col md:flex-row gap-0 md:gap-1">
@@ -171,6 +233,7 @@ const App: React.FC = () => {
                         onClick={() => handleOperationSelect('compra')}
                         isActive={activeOperation === 'compra'}
                         isShrunk={activeOperation === 'alquiler'}
+                        onReset={resetSearch}
                     >
                         {stepContent}
                     </SearchPanel>
@@ -180,6 +243,7 @@ const App: React.FC = () => {
                         onClick={() => handleOperationSelect('alquiler')}
                         isActive={activeOperation === 'alquiler'}
                         isShrunk={activeOperation === 'compra'}
+                        onReset={resetSearch}
                     >
                         {stepContent}
                     </SearchPanel>

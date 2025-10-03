@@ -8,9 +8,10 @@ interface SearchPanelProps {
   isActive: boolean;
   isShrunk: boolean;
   children?: React.ReactNode;
+  onReset?: () => void;
 }
 
-const SearchPanel: React.FC<SearchPanelProps> = ({ title, imageUrl, onClick, isActive, isShrunk, children }) => {
+const SearchPanel: React.FC<SearchPanelProps> = ({ title, imageUrl, onClick, isActive, isShrunk, onReset, children }) => {
   const panelClasses = `
     relative flex flex-col justify-center items-center
     bg-cover bg-center overflow-hidden cursor-pointer 
@@ -42,6 +43,15 @@ const SearchPanel: React.FC<SearchPanelProps> = ({ title, imageUrl, onClick, isA
       <div className={overlayClasses}></div>
       {isActive ? (
         <div className="z-10 w-full h-full text-white p-4 md:p-8 flex flex-col justify-center items-center overflow-y-auto">
+            {onReset && (
+              <button 
+                  onClick={onReset} 
+                  className="absolute top-4 right-4 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-colors z-20"
+                  aria-label="Empezar de nuevo"
+              >
+                  Empezar de nuevo
+              </button>
+            )}
             {children}
         </div>
       ) : (

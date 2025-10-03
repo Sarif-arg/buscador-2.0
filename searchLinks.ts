@@ -1,75 +1,72 @@
+
 import type { SearchCriteria } from './types';
 
-/**
- * AQUÍ DEBES AÑADIR LOS ENLACES A TUS PÁGINAS DE RESULTADOS.
- * La estructura es anidada: operacion -> tipoDePropiedad -> localidad -> dormitorios.
- * Si una búsqueda no necesita un criterio (ej. un terreno no tiene dormitorios),
- * el enlace se coloca en el nivel anterior.
- * 
- * Ejemplo:
- * - Para Comprar > Terreno > Ibarlucea, el link se pone en SEARCH_URLS.compra.terreno.ibarlucea
- * - Para Comprar > Casa > Rosario > 2 Dormitorios, el link se pone en SEARCH_URLS.compra.casa.rosario['2']
- */
-const SEARCH_URLS: Record<string, any> = {
-  'compra': {
-    'casa': {
-      'rosario': {
-        '1': 'https://www.almironpropiedades.com.ar/casas-en-venta-en-rosario-1-dormitorio',
-        '2': 'https://www.almironpropiedades.com.ar/casas-en-venta-en-rosario-2-dormitorios',
-        '3': 'https://www.almironpropiedades.com.ar/casas-en-venta-en-rosario-3-dormitorios',
-      },
-      'funes': {
-        '2': 'https://www.almironpropiedades.com.ar/casas-en-venta-en-funes-2-dormitorios',
-      }
-    },
-    'terreno': {
-      'ibarlucea': 'https://www.almironpropiedades.com.ar/terrenos-en-venta-en-ibarlucea',
-      'roldan': 'https://www.almironpropiedades.com.ar/terrenos-en-venta-en-roldan',
-    }
-  },
-  'alquiler': {
-    'departamento': {
-      'rosario': {
-        'monoambiente': 'https://www.almironpropiedades.com.ar/departamentos-en-alquiler-en-rosario-monoambiente',
-        '1': 'https://www.almironpropiedades.com.ar/departamentos-en-alquiler-en-rosario-1-dormitorio',
-      },
-       'capitan bermudez': {
-        '2': 'https://www.almironpropiedades.com.ar/departamentos-en-alquiler-en-cap-bermudez-2-dormitorios',
-      }
-    }
-  }
+const BASE_URL = "https://almironpropiedades.com.ar/propiedades";
+
+// Mappings from criteria IDs to URL slugs
+const propertyTypeMap: { [key: string]: string } = {
+  'casa': '/casas',
+  'departamento': '/departamentos',
+  'terreno': '/terrenos+o+lotes',
+  'local': '/locales+comerciales',
+  'galpon': '/galpones',
+  'oficina': '/oficinas',
+  'campo': '/campos',
 };
 
-// URL genérica si no se encuentra una coincidencia específica.
-const FALLBACK_URL = 'https://www.almironpropiedades.com.ar/propiedades';
+const operationMap: { [key: string]: string } = {
+  'alquiler': '/alquileres',
+  'compra': '/venta',
+};
+
+const locationMap: { [key:string]: string } = {
+  'capitan bermudez': '/Argentina-Santa+Fe-San+Lorenzo-Capitan+Bermudez',
+  'san lorenzo': '/Argentina-Santa+Fe-San+Lorenzo-San+Lorenzo',
+  'flb': '/Argentina-Santa+Fe-San+Lorenzo-Fray+Luis+Beltran',
+  'ricardone': '/Argentina-Santa+Fe-San+Lorenzo-Ricardone',
+  'rosario': '/Argentina-Santa+Fe-Rosario-Rosario',
+  'granadero baigorria': '/Argentina-Santa+Fe-Rosario-Granadero-Baigorria',
+  'ibarlucea': '/Argentina-Santa+Fe-Rosario-Ibarlucea',
+};
+
+const bedroomsMap: { [key: string]: string } = {
+  'monoambiente': '/0-dormitorios',
+  '1': '/1-dormitorios',
+  '2': '/2-dormitorios',
+  '3': '/3-dormitorios',
+  '4+': '/4-dormitorios',
+};
 
 /**
- * Busca de forma segura en el objeto SEARCH_URLS la URL correspondiente a los criterios.
- * @param criteria - Los filtros de búsqueda seleccionados por el usuario.
- * @returns La URL específica o la URL de fallback.
+ * Generates a search URL based on the user's criteria.
+ * @param criteria - The filters of search selected by the user.
+ * @returns The dynamically constructed search URL.
  */
 export function getSearchUrl(criteria: SearchCriteria): string {
-  try {
-    let currentLevel: any = SEARCH_URLS;
+  let path = '';
 
-    if (criteria.operation) {
-      currentLevel = currentLevel[criteria.operation];
-    }
-    if (criteria.propertyType) {
-      currentLevel = currentLevel[criteria.propertyType];
-    }
-    if (criteria.location) {
-      // Usamos el id de la localidad que puede tener espacios
-      currentLevel = currentLevel[criteria.location];
-    }
-    if (criteria.bedrooms) {
-      currentLevel = currentLevel[criteria.bedrooms];
-    }
-
-    // Si encontramos un string, es la URL. Si no, no hay coincidencia.
-    return typeof currentLevel === 'string' ? currentLevel : FALLBACK_URL;
-  } catch (error) {
-    // Si en algún punto la clave no existe, se producirá un error.
-    return FALLBACK_URL;
+  if (criteria.propertyType && propertyTypeMap[criteria.propertyType]) {
+    path += propertyTypeMap[criteria.propertyType];
   }
+  
+  if (criteria.operation && operationMap[criteria.operation]) {
+    path += operationMap[criteria.operation];
+  }
+
+  if (criteria.location && locationMap[criteria.location]) {
+    path += locationMap[criteria.location];
+  }
+
+  if (criteria.bedrooms && bedroomsMap[criteria.bedrooms]) {
+    path += bedroomsMap[criteria.bedrooms];
+  }
+
+  let finalUrl = `${BASE_URL}${path}`;
+  
+  // Append credit parameter if applicable
+  if (criteria.isMortgageCredit) {
+    finalUrl += '?suitable_for_credit=1';
+  }
+
+  return finalUrl;
 }
