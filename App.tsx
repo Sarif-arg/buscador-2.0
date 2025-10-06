@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import SearchPanel from './components/SearchPanel';
 import StepOption from './components/StepOption';
@@ -222,14 +221,11 @@ const App: React.FC = () => {
 
     return (
         <main className="w-screen h-screen bg-[rgb(13,30,40)] text-white overflow-hidden flex flex-col">
-            <header className="p-4 flex justify-between items-center w-full shrink-0">
-                <h1 className="text-2xl font-bold tracking-wider">ALMIRON PROPIEDADES</h1>
-            </header>
             <div className="w-full flex-grow flex flex-col overflow-hidden">
                 <div className="flex-grow flex flex-col md:flex-row gap-0 md:gap-1">
                     <SearchPanel
                         title="Comprar"
-                        imageUrl="https://picsum.photos/id/1062/1200/800"
+                        imageUrl="https://images.unsplash.com/photo-1729855637715-99192904aac5"
                         onClick={() => handleOperationSelect('compra')}
                         isActive={activeOperation === 'compra'}
                         isShrunk={activeOperation === 'alquiler'}
@@ -239,7 +235,7 @@ const App: React.FC = () => {
                     </SearchPanel>
                     <SearchPanel
                         title="Alquilar"
-                        imageUrl="https://picsum.photos/id/10/1200/800"
+                        imageUrl="https://images.unsplash.com/photo-1758523671893-0ba21cf4260f"
                         onClick={() => handleOperationSelect('alquiler')}
                         isActive={activeOperation === 'alquiler'}
                         isShrunk={activeOperation === 'compra'}
@@ -250,10 +246,20 @@ const App: React.FC = () => {
                 </div>
                 <div className="flex flex-row h-16 md:h-[10%] shrink-0 gap-0 md:gap-1 mt-1 md:mt-1">
                    <div className={`transition-all duration-700 ease-in-out w-1/2 ${!activeOperation ? 'md:w-1/2' : (activeOperation === 'compra' ? 'md:w-[90%]' : 'md:w-[10%]')}`}>
-                       <AppraisalButton title="Tasar para Vender" icon={<PropertyIcon />} isShrunk={activeOperation === 'alquiler'} />
+                       <AppraisalButton 
+                           title="Tasar para Vender" 
+                           icon={<PropertyIcon />} 
+                           isShrunk={activeOperation === 'alquiler'}
+                           url="https://almironpropiedades.com.ar/tasaciones"
+                        />
                    </div>
                    <div className={`transition-all duration-700 ease-in-out w-1/2 ${!activeOperation ? 'md:w-1/2' : (activeOperation === 'alquiler' ? 'md:w-[90%]' : 'md:w-[10%]')}`}>
-                       <AppraisalButton title="Tasar para Alquilar" icon={<KeyIcon />} isShrunk={activeOperation === 'compra'} />
+                       <AppraisalButton 
+                           title="Tasar para Alquilar" 
+                           icon={<KeyIcon />} 
+                           isShrunk={activeOperation === 'compra'}
+                           url="https://almironpropiedades.com.ar/tasaciones"
+                        />
                    </div>
                 </div>
             </div>
