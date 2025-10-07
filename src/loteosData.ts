@@ -10,14 +10,14 @@ export const LOTEOS_DATA: Loteo[] = [
   {
     id: 'portofino',
     name: 'Portofino',
-    imageUrl: 'https://d1v2p1s05qqabi.cloudfront.net/sites/152/media/1743440203526.webp',
+    imageUrl: 'https://d1v2p1s05qqabi.cloudfront.net/sites/152/media/1736277046414.webp',
     url: 'https://almironpropiedades.com.ar/portofino-el-lugar-donde-los-suenos-se-convierten-en-hogar'
   },
   {
     id: 'fincas-del-rosedal',
     name: 'Fincas del Rosedal',
     imageUrl: 'https://d1v2p1s05qqabi.cloudfront.net/sites/152/media/1729535975565.webp',
-    url: 'almironpropiedades.com.ar/fincas-del-rosedal-etapa-2-vida-de-pueblo-a-solo-5-minutos-de-la-ciudad'
+    url: 'https://almironpropiedades.com.ar/fincas-del-rosedal-etapa-2-vida-de-pueblo-a-solo-5-minutos-de-la-ciudad'
   },
   {
     id: 'fincas-ros',
