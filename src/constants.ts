@@ -1,9 +1,10 @@
 import type { StepOptionData } from './types';
 
 export const PROPERTY_TYPES: StepOptionData[] = [
+  { id: 'todas', label: 'Todas' },
   { id: 'casa', label: 'Casa' },
   { id: 'departamento', label: 'Departamento' },
-  { id: 'terreno', label: 'Terreno 🔥' },
+  { id: 'terreno', label: 'Terreno' },
   { id: 'galpon', label: 'Galpón' },
   { id: 'local', label: 'Local Comercial' },
   { id: 'oficina', label: 'Oficina' },

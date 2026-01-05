@@ -4,6 +4,7 @@ const BASE_URL = "https://almironpropiedades.com.ar/propiedades";
 
 // Mappings from criteria IDs to URL slugs
 const propertyTypeMap: { [key: string]: string } = {
+  'todas': '/todas',
   'casa': '/casas',
   'departamento': '/departamentos',
   'terreno': '/terrenos+o+lotes',
@@ -24,16 +25,17 @@ const locationMap: { [key:string]: string } = {
   'flb': '/Argentina-Santa+Fe-San+Lorenzo-Fray+Luis+Beltran',
   'ricardone': '/Argentina-Santa+Fe-San+Lorenzo-Ricardone',
   'rosario': '/Argentina-Santa+Fe-Rosario-Rosario',
-  'granadero baigorria': '/Argentina-Santa+Fe-Rosario-Granadero-Baigorria',
+  'granadero baigorria': '/Argentina-Santa+Fe-Rosario-Granadero+Baigorria',
   'ibarlucea': '/Argentina-Santa+Fe-Rosario-Ibarlucea',
 };
 
-const bedroomsMap: { [key: string]: string } = {
-  'monoambiente': '/0-dormitorios',
-  '1': '/1-dormitorios',
-  '2': '/2-dormitorios',
-  '3': '/3-dormitorios',
-  '4+': '/4-dormitorios',
+// Map internal IDs to the numeric values used in the URL construction
+const bedroomNumberMap: Record<string, string> = {
+  'monoambiente': '0',
+  '1': '1',
+  '2': '2',
+  '3': '3',
+  '4+': '4',
 };
 
 /**
@@ -56,8 +58,20 @@ export function getSearchUrl(criteria: SearchCriteria): string {
     path += locationMap[criteria.location];
   }
 
-  if (criteria.bedrooms && bedroomsMap[criteria.bedrooms]) {
-    path += bedroomsMap[criteria.bedrooms];
+  // Handle multi-select bedrooms logic: /0-1-3-dormitorios
+  if (criteria.bedrooms && criteria.bedrooms.length > 0) {
+    // 1. Map IDs to numbers
+    const selectedNumbers = criteria.bedrooms
+      .map(id => bedroomNumberMap[id])
+      .filter(Boolean); // Ensure valid mappings
+
+    // 2. Sort numbers to ensure consistency (e.g. 0-1-2)
+    selectedNumbers.sort();
+
+    // 3. Construct the segment
+    if (selectedNumbers.length > 0) {
+      path += `/${selectedNumbers.join('-')}-dormitorios`;
+    }
   }
 
   let finalUrl = `${BASE_URL}${path}`;

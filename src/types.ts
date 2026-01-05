@@ -4,7 +4,7 @@ export interface SearchCriteria {
   operation: Operation | null;
   propertyType: string | null;
   location: string | null;
-  bedrooms: string | null;
+  bedrooms: string[]; // Changed to array for multi-select
   isMortgageCredit: boolean | null;
 }
 

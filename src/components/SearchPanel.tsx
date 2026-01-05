@@ -7,10 +7,10 @@ interface SearchPanelProps {
   isActive: boolean;
   isShrunk: boolean;
   children?: React.ReactNode;
-  onReset?: () => void;
+  onBack?: () => void;
 }
 
-const SearchPanel: React.FC<SearchPanelProps> = ({ title, imageUrl, onClick, isActive, isShrunk, onReset, children }) => {
+const SearchPanel: React.FC<SearchPanelProps> = ({ title, imageUrl, onClick, isActive, isShrunk, onBack, children }) => {
   const panelClasses = `
     relative flex flex-col justify-center items-center
     bg-cover bg-center overflow-hidden cursor-pointer 
@@ -42,13 +42,16 @@ const SearchPanel: React.FC<SearchPanelProps> = ({ title, imageUrl, onClick, isA
       <div className={overlayClasses}></div>
       {isActive ? (
         <div className="z-10 w-full h-full text-white p-4 md:p-8 flex flex-col justify-center items-center overflow-y-auto">
-            {onReset && (
+            {onBack && (
               <button 
-                  onClick={onReset} 
-                  className="absolute top-4 right-4 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-colors z-20"
-                  aria-label="Empezar de nuevo"
+                  onClick={onBack} 
+                  className="absolute top-4 right-4 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-colors z-20 flex items-center gap-2 text-sm md:text-base"
+                  aria-label="Volver atrás"
               >
-                  Empezar de nuevo
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                  </svg>
+                  Volver atrás
               </button>
             )}
             {children}
