@@ -11,7 +11,7 @@ export const LOTEOS_DATA: Loteo[] = [
     id: 'portofino',
     name: 'Portofino',
     imageUrl: 'https://d1v2p1s05qqabi.cloudfront.net/sites/152/media/1743440203526.webp',
-    url: 'https://almironpropiedades.com.ar/landing-portofino-el-lugar-donde-los-suenos-se-convierten-en-hogar-SP'
+    url: 'https://almironpropiedades.com.ar/lanzamiento-portofino-el-lugar-donde-los-suenos-se-convierten-en-hogar-SP'
   },
   {
     id: 'fincas-del-rosedal',
